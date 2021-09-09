@@ -1,5 +1,5 @@
 """
-The goal of the module is to attach physical coordinaes to array elements, so `a[i,j]` could be interpreted as ``f(x_i, y_j)`` for some function ``f``.
+The goal of the module is to attach physical coordinates to array elements, so `a[i,j]` could be interpreted as ``f(x_i, y_j)`` for some function ``f``.
 """
 module SampledDomains
 
