@@ -6,7 +6,7 @@ module SampledDomains
 abstract type AbstractDomain end
 
 import Base.:*
-import Base: size, length, axes, getindex
+import Base: size, length, axes, getindex, ndims
 import Base.iterate, Base.IteratorSize, Base.IndexStyle
 
 export CartesianDomain2D, make_centered_domain2D, dualRange, dualDomain
@@ -17,6 +17,7 @@ length(dom::AbstractDomain) = prod(length.(getranges(dom)))
 size(dom::AbstractDomain) = tuple(length.(reverse(getranges(dom)))...) # we need reverse to follow column major rule
 # size(dom::AbstractDomain, d) = length(getfield(dom,d))
 size(dom::AbstractDomain, d) = size(dom)[d]
+ndims(dom::AbstractDomain) = length(fieldnames(typeof(dom)))
 
 # TODO rewrite as parametric type
 struct CartesianDomain2D <: AbstractDomain
@@ -29,6 +30,12 @@ end
 
 function getindex(dom::CartesianDomain2D, I::Vararg{Int,2})
     return collect(x[i] for (x, i) in zip(reverse(getranges(dom)), I))
+end
+
+function Base.getindex(dom::CartesianDomain2D, i::Int)
+    1 <= i <= length(dom) || throw(BoundsError(dom, i))
+    xc, yc = divrem(i, size(dom, 2))
+    return [dom.yrange[yc], dom.xrange[xc + 1]]
 end
 
 Base.IndexStyle(::Type{<:CartesianDomain2D}) = IndexCartesian()
