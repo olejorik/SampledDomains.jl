@@ -25,8 +25,8 @@ struct CartesianDomain2D <: AbstractDomain
     yrange::AbstractRange
 end
 
-*(dom::CartesianDomain2D, s::Real) = CartesianDomain2D(dom.xrange * s, dom.yrange * s)
-*(s::Real, dom::CartesianDomain2D) = CartesianDomain2D(dom.xrange * s, dom.yrange * s)
+*(dom::CartesianDomain2D, s::Real) = CartesianDomain2D(dom.xrange .* s, dom.yrange .* s)
+*(s::Real, dom::CartesianDomain2D) = dom * s
 
 function getindex(dom::CartesianDomain2D, I::Vararg{Int,2})
     return collect(x[i] for (x, i) in zip(reverse(getranges(dom)), I))
@@ -48,11 +48,14 @@ iterate(dom::CartesianDomain2D) = iterate(Iterators.product(reverse(getranges(do
 # ndims(dom::CartesianDomain2D) = ndims(Iterators.product(getranges(dom)...))
 IteratorSize(dom::CartesianDomain2D) = IteratorSize(Iterators.product(getranges(dom)...))
 
-function make_centered_domain2D(xlength, ylength, pixelsize)
-    xrange = ((1:xlength) .- (1 + xlength) / 2) .* pixelsize
-    yrange = ((1:ylength) .- (1 + ylength) / 2) .* pixelsize
+function make_centered_domain2D(xlength, ylength, pixelsizex, pixelsizey)
+    xrange = ((1:xlength) .- (1 + xlength) / 2) .* pixelsizex
+    yrange = ((1:ylength) .- (1 + ylength) / 2) .* pixelsizey
     return CartesianDomain2D(xrange, yrange)
 end
+
+make_centered_domain2D(xlength, ylength, pixelsize) =
+    make_centered_domain2D(xlength, ylength, pixelsize, pixelsize)
 
 """
     dualRange(xrange::AbstractRange, q::Int =1)
@@ -66,9 +69,9 @@ function dualRange(xrange::AbstractRange, q::Int=1)
     return UnitRange(-floor(Int, len / 2), ceil(Int, len / 2) - 1) / (st * len)
 end
 
-function dualDomain(dom::CartesianDomain2D, q::Int=1)
-    kxrange = dualRange(dom.xrange, q)
-    kyrange = dualRange(dom.yrange, q)
+function dualDomain(dom::CartesianDomain2D, q::Tuple{Int,Int}=(1, 1))
+    kxrange = dualRange(dom.xrange, q[1])
+    kyrange = dualRange(dom.yrange, q[2])
     return CartesianDomain2D(kxrange, kyrange)
 end
 
